@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,12 +13,12 @@ public class World : MonoBehaviour
 
     void Start()
     {
-        UpdateChunks(); 
+        UpdateChunks();
     }
 
     void Update()
     {
-        UpdateChunks(); 
+        UpdateChunks();
     }
 
     void UpdateChunks()
@@ -38,7 +37,8 @@ public class World : MonoBehaviour
 
                 if (!chunks.ContainsKey(coord))
                 {
-                    CreateChunk(coord.x, coord.y);
+                    ChunkType type = DetermineChunkType(coord);
+                    CreateChunk(coord.x, coord.y, type);
                 }
             }
         }
@@ -58,9 +58,9 @@ public class World : MonoBehaviour
         }
     }
 
-    void CreateChunk(int cx, int cz)
+    void CreateChunk(int cx, int cz, ChunkType type)
     {
-        GameObject chunkObj = new GameObject($"Chunk_{cx}_{cz}");
+        GameObject chunkObj = new GameObject($"Chunk_{cx}_{cz}_{type}");
         chunkObj.transform.parent = this.transform;
 
         Chunk chunk = chunkObj.AddComponent<Chunk>();
@@ -68,9 +68,29 @@ public class World : MonoBehaviour
         chunk.chunkZ = cz;
         chunk.scale = scale;
         chunk.materials = materials;
+        chunk.chunkType = type;
 
         chunkObj.transform.position = new Vector3(cx * Chunk.chunkSizeX, 0, cz * Chunk.chunkSizeZ);
-
         chunks[new Vector2Int(cx, cz)] = chunk;
+    }
+
+    ChunkType DetermineChunkType(Vector2Int coord)
+    {
+        if (coord == Vector2Int.zero)
+            return ChunkType.Spawn;
+
+        // Example logic — you can expand it later
+        int rand = Random.Range(0, 100);
+
+        if (rand < 70)
+            return ChunkType.CorridorForward;
+        else if (rand < 80)
+            return ChunkType.CorridorLeft;
+        else if (rand < 90)
+            return ChunkType.CorridorRight;
+        else if (rand < 95)
+            return ChunkType.CorridorDiagonalLeft;
+        else
+            return ChunkType.CorridorDiagonalRight;
     }
 }

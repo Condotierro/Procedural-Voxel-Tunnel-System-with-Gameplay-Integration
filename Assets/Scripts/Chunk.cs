@@ -21,6 +21,8 @@ public class Chunk : MonoBehaviour
 
     public Material[] materials;
 
+    public ChunkType chunkType;
+
     void Start()
     {
         meshFilter = gameObject.AddComponent<MeshFilter>();
@@ -68,17 +70,6 @@ public class Chunk : MonoBehaviour
                 float heightNoise = Mathf.PerlinNoise(wx * scale, wz * scale);
                 int height = Mathf.FloorToInt(heightNoise * maxHeight);
 
-                float canyonNoise = Mathf.PerlinNoise(wx * scale * 1f, wz * scale * 1f);
-
-                // transform canyon noise into a 0–1 "carve mask"
-                // where 1 = canyon center, 0 = normal terrain
-                canyonNoise = Mathf.Abs(canyonNoise - 0.5f) * 2f; // 0 at edges, 1 in center
-                canyonNoise = 1f - canyonNoise; // invert so canyons = high value
-                canyonNoise = Mathf.Pow(canyonNoise, 3f);
-                float canyonDepth = canyonNoise * 40f; // how deep canyons go 
-                height -= Mathf.FloorToInt(canyonDepth);
-                height = Mathf.Clamp(height, 0, chunkSizeY - 1);
-
                 // fill column
                 for (int y = 0; y < chunkSizeY; y++)
                 {
@@ -87,20 +78,42 @@ public class Chunk : MonoBehaviour
                     else if (y < height)
                         blocks[x, y, z] = BlockType.Dirt;
                     else if (y == height)
-                    {
                         blocks[x, y, z] = BlockType.Grass;
-                    
-                        if(height == 0)
-                        {
-                            blocks[x, y, z] = BlockType.Stone;
-                        }
-                    }
                     else
                         blocks[x, y, z] = BlockType.Air;
                 }
             }
         }
+
+        // Carve based on type
+        switch (chunkType)
+        {
+            case ChunkType.Spawn:
+                CarveCircle(chunkSizeX / 2, 50, chunkSizeZ / 2, 6);
+                break;
+
+            case ChunkType.CorridorForward:
+                CarveCorridor(8, 50, 8, Vector3.forward);
+                break;
+
+            case ChunkType.CorridorLeft:
+                CarveCorridor(8, 50, 8, Vector3.left);
+                break;
+
+            case ChunkType.CorridorRight:
+                CarveCorridor(8, 50, 8, Vector3.right);
+                break;
+
+            case ChunkType.CorridorDiagonalLeft:
+                CarveDiagonal(8, 50, 8, -1);
+                break;
+
+            case ChunkType.CorridorDiagonalRight:
+                CarveDiagonal(8, 50, 8, 1);
+                break;
+        }
     }
+
 
 
     public void GenerateMesh()
@@ -298,4 +311,49 @@ public class Chunk : MonoBehaviour
             default: return 0; // fallback
         }
     }
+
+    void CarveCircle(int cx, int cy, int cz, int radius)
+    {
+        for (int x = 0; x < chunkSizeX; x++)
+            for (int y = 0; y < chunkSizeY; y++)
+                for (int z = 0; z < chunkSizeZ; z++)
+                {
+                    float dist = Vector3.Distance(new Vector3(x, y, z), new Vector3(cx, cy, cz));
+                    if (dist < radius)
+                        blocks[x, y, z] = BlockType.Air;
+                }
+    }
+
+    void CarveCorridor(int centerY, int height, int width, Vector3 dir)
+    {
+        for (int x = 0; x < chunkSizeX; x++)
+            for (int z = 0; z < chunkSizeZ; z++)
+            {
+                int cx = chunkSizeX / 2;
+                int cz = chunkSizeZ / 2;
+
+                // simple straight corridor down z-axis
+                if (Mathf.Abs(x - cx) < width / 2)
+                {
+                    for (int y = centerY; y < centerY + height; y++)
+                        blocks[x, y, z] = BlockType.Air;
+                }
+            }
+    }
+
+    void CarveDiagonal(int centerY, int height, int width, int dir)
+    {
+        for (int x = 0; x < chunkSizeX; x++)
+            for (int z = 0; z < chunkSizeZ; z++)
+            {
+                // line goes diagonally across chunk
+                int diag = (int)(z + dir * (x - chunkSizeX / 2));
+                if (Mathf.Abs(diag) < width / 2)
+                {
+                    for (int y = centerY; y < centerY + height; y++)
+                        blocks[x, y, z] = BlockType.Air;
+                }
+            }
+    }
+
 }
