@@ -8,6 +8,7 @@ public class ShipController : MonoBehaviour
     public float acceleration = 20f;
     public float maxSpeed = 25f;
     public float damping = 5f;
+    public float verticalSmooth = 3f; 
 
     [Header("Rotation")]
     public float turnSpeed = 60f;
@@ -33,8 +34,21 @@ public class ShipController : MonoBehaviour
     public AudioClip rammingSound; 
     private AudioSource audioSource;
 
+    public MapLayer currentMapLayer;
+    public enum MapLayer
+    {
+        Top,
+        Medium,
+        Bottom
+    }
+
+    public const float TopHeight = 50;
+    public const float MediumHeight = 30;
+    public const float BottomHeight = 10;
+
     void Start()
     {
+        currentMapLayer = MapLayer.Medium;
         rb = GetComponent<Rigidbody>();
         rb.useGravity = false;
         rb.drag = 0.5f;
@@ -44,9 +58,56 @@ public class ShipController : MonoBehaviour
         audioSource.playOnAwake = false;
     }
 
+    void SwitchLayer()
+    {
+        currentMapLayer = currentMapLayer switch
+        {
+            MapLayer.Bottom => MapLayer.Medium,
+            MapLayer.Medium => MapLayer.Top,
+            MapLayer.Top => MapLayer.Bottom,
+            _ => currentMapLayer
+        };
+    }
+
+    void LowerLayer()
+    {
+        switch (currentMapLayer)
+        {
+            case MapLayer.Top:
+                currentMapLayer = MapLayer.Medium;
+                break;
+            case MapLayer.Medium:
+                currentMapLayer = MapLayer.Bottom;
+                break;
+        }
+    }
+
+    void HigherLayer()
+    {
+        switch (currentMapLayer)
+        {
+            case MapLayer.Bottom:
+                currentMapLayer = MapLayer.Medium;
+                break;
+            case MapLayer.Medium:
+                currentMapLayer = MapLayer.Top;
+                break;
+        }
+    }
+
     private void Update()
     {
         HandleShooting();
+
+        if (Input.GetKeyDown(KeyCode.O)) 
+        {
+            HigherLayer();
+        }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            LowerLayer();
+        }
     }
 
     void FixedUpdate()
@@ -58,31 +119,39 @@ public class ShipController : MonoBehaviour
 
     void HandleMovement()
     {
+        // Horizontal/forward movement
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        float ascend = 0f;
-
-        if (Input.GetKey(KeyCode.Space))
-            ascend = 1f;
-        else if (Input.GetKey(KeyCode.LeftControl))
-            ascend = -1f;
-
-        Vector3 moveDir = (transform.forward * v) + (transform.right * h) + (transform.up * ascend);
+        Vector3 moveDir = (transform.forward * v) + (transform.right * h);
 
         rb.AddForce(moveDir.normalized * acceleration, ForceMode.Acceleration);
 
+        // Cap speed
         if (rb.velocity.magnitude > maxSpeed)
             rb.velocity = rb.velocity.normalized * maxSpeed;
 
+        // Damping when no input
         if (moveDir.magnitude < 0.1f)
-            rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, damping * Time.fixedDeltaTime);
-
-        if (Mathf.Approximately(ascend, 0f))
         {
-            Vector3 vel = rb.velocity;
-            vel.y = 0f;
-            rb.velocity = vel;
+            rb.velocity = Vector3.Lerp(rb.velocity, new Vector3(0, rb.velocity.y, 0), damping * Time.fixedDeltaTime);
         }
+
+        // -------- Vertical Layer Handling --------
+        float targetY = GetLayerHeight(currentMapLayer);
+        float newY = Mathf.Lerp(rb.position.y, targetY, verticalSmooth * Time.fixedDeltaTime);
+
+        rb.MovePosition(new Vector3(rb.position.x, newY, rb.position.z));
+    }
+
+    float GetLayerHeight(MapLayer layer)
+    {
+        return layer switch
+        {
+            MapLayer.Top => TopHeight,
+            MapLayer.Medium => MediumHeight,
+            MapLayer.Bottom => BottomHeight,
+            _ => MediumHeight
+        };
     }
 
     void HandleRotation()
