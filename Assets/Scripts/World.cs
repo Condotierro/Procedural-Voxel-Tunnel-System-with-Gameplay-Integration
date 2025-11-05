@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,16 +9,30 @@ public class World : MonoBehaviour
 
     public float scale;
     public Transform player;
+
     private Dictionary<Vector2Int, Chunk> chunks = new Dictionary<Vector2Int, Chunk>();
+    private PathGenerator pathGen;
+
 
     void Start()
     {
-        UpdateChunks(); 
+        // Attach a path generator to this world
+        pathGen = gameObject.AddComponent<PathGenerator>();
+        pathGen.initialLength = 100; // Generate an initial long path
+        pathGen.turnChance = 0.15f;
+        pathGen.forwardBias = 0.7f;
+
+        // Force the path to be generated immediately
+        pathGen.GenerateImmediate();
+
+        // Now it's safe to build chunks right away
+        UpdateChunks();
     }
+
 
     void Update()
     {
-        UpdateChunks(); 
+        UpdateChunks();
     }
 
     void UpdateChunks()
@@ -29,6 +42,7 @@ public class World : MonoBehaviour
 
         HashSet<Vector2Int> needed = new HashSet<Vector2Int>();
 
+        // Load chunks within render distance
         for (int dx = -renderDistance; dx <= renderDistance; dx++)
         {
             for (int dz = -renderDistance; dz <= renderDistance; dz++)
@@ -43,6 +57,7 @@ public class World : MonoBehaviour
             }
         }
 
+        // Unload chunks that are no longer needed
         List<Vector2Int> toRemove = new List<Vector2Int>();
         foreach (var kvp in chunks)
         {
@@ -60,6 +75,7 @@ public class World : MonoBehaviour
 
     void CreateChunk(int cx, int cz)
     {
+        // Create the chunk GameObject
         GameObject chunkObj = new GameObject($"Chunk_{cx}_{cz}");
         chunkObj.transform.parent = this.transform;
 
@@ -71,6 +87,42 @@ public class World : MonoBehaviour
 
         chunkObj.transform.position = new Vector3(cx * Chunk.chunkSizeX, 0, cz * Chunk.chunkSizeZ);
 
+        // Determine chunk type based on path
+        ChunkType type = GetChunkTypeForPosition(cx, cz);
+        chunk.SetChunkType(type);
+
+        if(type == ChunkType.Start)
+        {
+            player.position = new Vector3(cx * 32 + 16, player.position.y, cz * 32 + 16); Debug.Log("SCA");
+        }
+
         chunks[new Vector2Int(cx, cz)] = chunk;
+    }
+
+    ChunkType GetChunkTypeForPosition(int cx, int cz)
+    {
+        // Find matching path segment (rounded to chunk coordinates)
+        Vector2Int pos = new Vector2Int(cx, cz);
+        var path = pathGen.GetPath();
+
+        foreach (var seg in path)
+        {
+            if (seg.Position == pos)
+            {
+                switch (seg.Type)
+                {
+                    case PathGenerator.TileType.Start: return ChunkType.Start;
+                    case PathGenerator.TileType.Straight: return ChunkType.Straight;
+                    case PathGenerator.TileType.TurnLeftStart: return ChunkType.TurnLeftStart;
+                    case PathGenerator.TileType.TurnLeftEnd: return ChunkType.TurnLeftEnd;
+                    case PathGenerator.TileType.TurnRightStart: return ChunkType.TurnRightStart;
+                    case PathGenerator.TileType.TurnRightEnd: return ChunkType.TurnRightEnd;
+                    case PathGenerator.TileType.End: return ChunkType.End;
+                }
+            }
+        }
+
+        // Default if no path tile exists here
+        return ChunkType.Plain;
     }
 }

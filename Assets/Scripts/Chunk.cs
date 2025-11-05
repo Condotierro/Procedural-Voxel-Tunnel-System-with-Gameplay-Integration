@@ -1,14 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 public class Chunk : MonoBehaviour
 {
-    public const int chunkSizeX = 16;
-    public const int chunkSizeY = 128;
-    public const int chunkSizeZ = 16;
-    public int maxHeight = 64;
+    public const int chunkSizeX = 32;
+    public const int chunkSizeY = 64;
+    public const int chunkSizeZ = 32;
+    public int maxHeight = 32;
     public BlockType[,,] blocks;
 
     private MeshFilter meshFilter;
@@ -20,6 +21,7 @@ public class Chunk : MonoBehaviour
     public int chunkZ;
 
     public Material[] materials;
+    public ChunkType chunkType;
 
     void Start()
     {
@@ -65,21 +67,38 @@ public class Chunk : MonoBehaviour
                 float wx = (x + chunkX * chunkSizeX);
                 float wz = (z + chunkZ * chunkSizeZ);
 
-                float heightNoise = Mathf.PerlinNoise(wx * scale, wz * scale);
-                int height = Mathf.FloorToInt(heightNoise * maxHeight);
+                int height = 32;
 
-                float canyonNoise = Mathf.PerlinNoise(wx * scale * 1f, wz * scale * 1f);
 
-                // transform canyon noise into a 0–1 "carve mask"
-                // where 1 = canyon center, 0 = normal terrain
-                canyonNoise = Mathf.Abs(canyonNoise - 0.5f) * 2f; // 0 at edges, 1 in center
-                canyonNoise = 1f - canyonNoise; // invert so canyons = high value
-                canyonNoise = Mathf.Pow(canyonNoise, 3f);
-                float canyonDepth = canyonNoise * 40f; // how deep canyons go 
-                height -= Mathf.FloorToInt(canyonDepth);
-                height = Mathf.Clamp(height, 0, chunkSizeY - 1);
+                switch (chunkType)
+                {
+                    case ChunkType.End:
+                    case ChunkType.Start:
+                        height = 16;
+                        break;
 
-                // fill column
+                    case ChunkType.TurnLeftStart:
+                    case ChunkType.TurnRightStart:
+                        height = 16;
+                        break;
+
+                    case ChunkType.TurnLeftEnd:
+                    case ChunkType.TurnRightEnd:
+                        height = 16;
+                        break;
+
+                    case ChunkType.Straight:
+                        height = 16;
+                        break;
+
+                    default:
+                        height = 32;
+                        break;
+                }
+
+
+
+
                 for (int y = 0; y < chunkSizeY; y++)
                 {
                     if (y < height - 10)
@@ -297,5 +316,10 @@ public class Chunk : MonoBehaviour
             case BlockType.Stone: return 2;
             default: return 0; // fallback
         }
+    }
+
+    public void SetChunkType(ChunkType type)
+    {
+        chunkType = type;
     }
 }
