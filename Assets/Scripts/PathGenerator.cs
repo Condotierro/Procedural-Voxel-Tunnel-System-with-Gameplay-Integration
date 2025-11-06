@@ -134,23 +134,28 @@ public class PathGenerator : MonoBehaviour
     {
         bool left = Random.value < 0.5f;
 
-        // Step onto turn start tile
+        // Mark turn start tile
         occupiedPositions.Add(turnStartPos);
         path.Add(new PathSegment(turnStartPos, left ? TileType.TurnLeftStart : TileType.TurnRightStart));
 
-        // Rotate
+        // Change direction (but never allow backward)
         Turn(left);
 
-        // Move forward one tile
-        Vector2Int turnEndPos = turnStartPos + directions[currentDir];
-        if (occupiedPositions.Contains(turnEndPos)) return;
+        // Sideways movement (1 tile max)
+        Vector2Int sidewaysPos = turnStartPos + directions[currentDir];
+        if (occupiedPositions.Contains(sidewaysPos)) return;
 
-        occupiedPositions.Add(turnEndPos);
-        path.Add(new PathSegment(turnEndPos, left ? TileType.TurnLeftEnd : TileType.TurnRightEnd));
+        occupiedPositions.Add(sidewaysPos);
+        path.Add(new PathSegment(sidewaysPos, left ? TileType.TurnLeftEnd : TileType.TurnRightEnd));
 
-        currentPos = turnEndPos;
+        // Update current position
+        currentPos = sidewaysPos;
+
+        // Immediately face forward again
+        currentDir = 0; // always go back to +Z
         justTurned = true;
     }
+
 
     private void DoRejoin()
     {

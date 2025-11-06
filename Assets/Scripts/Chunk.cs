@@ -96,7 +96,87 @@ public class Chunk : MonoBehaviour
                         }
 
                     case ChunkType.TurnLeftEnd:
+                        {
+                            float cx = 16f;
+                            float cz = 16f;
+
+                            float dx = cx - x;
+                            float dz = cz - z;
+
+                            float wallDistX = Mathf.Max(0, dx);
+                            float wallDistZ = Mathf.Max(0, dz);
+
+                            float wallDistXMin = Mathf.Abs(Mathf.Min(0, dx));
+                            float wallDistZMin = Mathf.Abs(Mathf.Min(0, dz));
+
+                            float wallStrength = wallDistX + wallDistZ;
+                            float stubStrenght = wallDistXMin + wallDistZMin;
+
+                            float tunnelRadius = 4f;
+                            float wallSteepness = 0.32f;
+
+
+
+
+                            float t = Mathf.Max(0, wallStrength - tunnelRadius);
+                            float curve = Mathf.Exp(t * wallSteepness);
+
+                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
+                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.06f, wz * 0.06f) * 1.2f);
+                            break;
+                        }
+                    case ChunkType.TurnRightStart:
+                        {
+                            float cx = 16f;
+                            float cz = 16f;
+
+                            float dx = x - cx;
+                            float dz = z - cz;
+
+                            // Walls go in -X and +Z
+                            float wallDistX = Mathf.Max(0, -dx);
+                            float wallDistZ = Mathf.Max(0, dz);
+
+                            float wallStrength = wallDistX + wallDistZ;
+
+                            float tunnelRadius = 4f;
+                            float wallSteepness = 0.32f;
+
+                            float t = Mathf.Max(0, wallStrength - tunnelRadius);
+                            float curve = Mathf.Exp(t * wallSteepness);
+
+                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
+
+                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.06f, wz * 0.06f) * 1.2f);
+                            break;
+                        }
+
                     case ChunkType.TurnRightEnd:
+                        {
+                            float cx = 16f;
+                            float cz = 16f;
+
+                            float dx = cx - x;
+                            float dz = cz - z;
+
+                            // Walls go in +X and -Z
+                            float wallDistX = Mathf.Max(0, -dx);
+                            float wallDistZ = Mathf.Max(0, dz);
+
+                            float wallStrength = wallDistX + wallDistZ;
+
+                            float tunnelRadius = 4f;
+                            float wallSteepness = 0.32f;
+
+                            float t = Mathf.Max(0, wallStrength - tunnelRadius);
+                            float curve = Mathf.Exp(t * wallSteepness);
+
+                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
+
+                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.06f, wz * 0.06f) * 1.2f);
+                            break;
+                        }
+
                     case ChunkType.StraightX:                        {
                             float centerZ = 16f;
                             float dz = Mathf.Abs(z - centerZ);
@@ -136,13 +216,6 @@ public class Chunk : MonoBehaviour
                             height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
 
                             height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.06f, wz * 0.06f) * 1.2f);
-                            break;
-                        }
-                    
-                    case ChunkType.TurnRightStart:
-
-                        {
-                            height = 16;
                             break;
                         }
 
