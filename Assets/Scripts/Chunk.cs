@@ -6,9 +6,9 @@ using UnityEngine.UIElements;
 
 public class Chunk : MonoBehaviour
 {
-    public const int chunkSizeX = 32;
-    public const int chunkSizeY = 64;
-    public const int chunkSizeZ = 32;
+    public const int chunkSizeX = 16;
+    public const int chunkSizeY = 32;
+    public const int chunkSizeZ = 16;
     public int maxHeight = 32;
     public BlockType[,,] blocks;
 
@@ -21,7 +21,6 @@ public class Chunk : MonoBehaviour
     public int chunkZ;
 
     public Material[] materials;
-    public ChunkType chunkType;
 
     void Start()
     {
@@ -45,224 +44,45 @@ public class Chunk : MonoBehaviour
         if (meshCollider == null)
             meshCollider = gameObject.AddComponent<MeshCollider>();
 
-        meshCollider.sharedMesh = null; // clear previous mesh
-        meshCollider.sharedMesh = meshFilter.mesh; // assign updated mesh
+        meshCollider.sharedMesh = null; 
+        meshCollider.sharedMesh = meshFilter.mesh; 
     }
 
     public void ModifyBlock(int x, int y, int z, BlockType newType)
     {
         blocks[x, y, z] = newType;
-        GenerateMesh();   // rebuild the mesh
-        UpdateCollider(); // sync collider
+        GenerateMesh();   
+        UpdateCollider(); 
     }
 
     void GenerateBlocks()
     {
         blocks = new BlockType[chunkSizeX, chunkSizeY, chunkSizeZ];
 
-
+        float tunnelRadius = 3.5f;
 
         for (int x = 0; x < chunkSizeX; x++)
-        {
             for (int z = 0; z < chunkSizeZ; z++)
             {
-                float wx = (x + chunkX * chunkSizeX);
-                float wz = (z + chunkZ * chunkSizeZ);
+                float wx = x + chunkX * chunkSizeX;
+                float wz = z + chunkZ * chunkSizeZ;
 
-                int height = 32;
+                Vector2 worldPos = new Vector2(wx, wz);
 
+                float distSq = TunnelPath.Instance.DistanceSqToPath(worldPos);
 
-                switch (chunkType)
-                {
-                    case ChunkType.Start:
-                    case ChunkType.End:
-                    case ChunkType.RejoinFromRightEnd:
-                    case ChunkType.RejoinFromLeftEnd:
-                    case ChunkType.StraightZ:
-                        {
-                            float centerX = 16f;
-                            float dx = Mathf.Abs(x - centerX);
-
-                            float tunnelRadius = 4f;
-                            float wallSteepness = 0.35f;
-
-                            float t = Mathf.Max(0, dx - tunnelRadius);
-                            float curve = Mathf.Exp(t * wallSteepness);
-
-                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
-
-                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.07f, wz * 0.07f) * 1.2f);
-                            break;
-                        }
-
-                    case ChunkType.TurnLeftEnd:
-                        {
-                            float cx = 16f;
-                            float cz = 16f;
-
-                            float dx = cx - x;
-                            float dz = cz - z;
-
-                            float wallDistX = Mathf.Max(0, dx);
-                            float wallDistZ = Mathf.Max(0, dz);
-
-                            float wallDistXMin = Mathf.Abs(Mathf.Min(0, dx));
-                            float wallDistZMin = Mathf.Abs(Mathf.Min(0, dz));
-
-                            float wallStrength = wallDistX + wallDistZ;
-                            float stubStrenght = wallDistXMin + wallDistZMin;
-
-                            float tunnelRadius = 4f;
-                            float wallSteepness = 0.32f;
-
-
-
-
-                            float t = Mathf.Max(0, wallStrength - tunnelRadius);
-                            float curve = Mathf.Exp(t * wallSteepness);
-
-                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
-                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.06f, wz * 0.06f) * 1.2f);
-                            break;
-                        }
-                    case ChunkType.TurnRightStart:
-                        {
-                            float cx = 16f;
-                            float cz = 16f;
-
-                            float dx = x - cx;
-                            float dz = z - cz;
-
-                            // Walls go in -X and +Z
-                            float wallDistX = Mathf.Max(0, -dx);
-                            float wallDistZ = Mathf.Max(0, dz);
-
-                            float wallStrength = wallDistX + wallDistZ;
-
-                            float tunnelRadius = 4f;
-                            float wallSteepness = 0.32f;
-
-                            float t = Mathf.Max(0, wallStrength - tunnelRadius);
-                            float curve = Mathf.Exp(t * wallSteepness);
-
-                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
-
-                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.06f, wz * 0.06f) * 1.2f);
-                            break;
-                        }
-
-                    case ChunkType.TurnRightEnd:
-                        {
-                            float cx = 16f;
-                            float cz = 16f;
-
-                            float dx = cx - x;
-                            float dz = cz - z;
-
-                            // Walls go in +X and -Z
-                            float wallDistX = Mathf.Max(0, -dx);
-                            float wallDistZ = Mathf.Max(0, dz);
-
-                            float wallStrength = wallDistX + wallDistZ;
-
-                            float tunnelRadius = 4f;
-                            float wallSteepness = 0.32f;
-
-                            float t = Mathf.Max(0, wallStrength - tunnelRadius);
-                            float curve = Mathf.Exp(t * wallSteepness);
-
-                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
-
-                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.06f, wz * 0.06f) * 1.2f);
-                            break;
-                        }
-
-                    case ChunkType.StraightX:                        {
-                            float centerZ = 16f;
-                            float dz = Mathf.Abs(z - centerZ);
-
-                            float tunnelRadius = 4f;
-                            float wallSteepness = 0.35f;
-
-                            float t = Mathf.Max(0, dz - tunnelRadius);
-                            float curve = Mathf.Exp(t * wallSteepness);
-
-                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
-
-                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.07f, wz * 0.07f) * 1.2f);
-                            break;
-                        }
-
-                    // CURVED TURNS (rounded corner)
-                    case ChunkType.TurnLeftStart:
-                        {
-                            float cx = 16f;
-                            float cz = 16f;
-
-                            float dx = x - cx;
-                            float dz = z - cz;
-
-                            float wallDistX = Mathf.Max(0, dx);
-                            float wallDistZ = Mathf.Max(0, dz);
-
-                            float wallStrength = wallDistX + wallDistZ;
-
-                            float tunnelRadius = 4f;
-                            float wallSteepness = 0.32f;
-
-                            float t = Mathf.Max(0, wallStrength - tunnelRadius);
-                            float curve = Mathf.Exp(t * wallSteepness);
-
-                            height = Mathf.Clamp(Mathf.RoundToInt(16 + curve), 16, 48);
-
-                            height += Mathf.FloorToInt(Mathf.PerlinNoise(wx * 0.06f, wz * 0.06f) * 1.2f);
-                            break;
-                        }
-
-                    // REJOINS (just treat like straightZ for now — we can refine later)
-                    case ChunkType.RejoinFromRightStart:
-                    case ChunkType.RejoinFromLeftStart:
-                    case ChunkType.RejoinFromBackStart:
-                    case ChunkType.RejoinFromBackEnd:
-                        {
-                            height = 16;
-                            break;
-                        }
-
-                    default:
-                        {
-                            float n = Mathf.PerlinNoise(wx * 0.02f, wz * 0.02f);
-                            height = Mathf.FloorToInt(Mathf.Lerp(48, 72, n));
-                            break;
-                        }
-                }
-
-
-
-
-
+                bool carve = distSq < (tunnelRadius * tunnelRadius * 3);
 
                 for (int y = 0; y < chunkSizeY; y++)
-                     {
-                         if (y < height - 10)
-                             blocks[x, y, z] = BlockType.Stone;
-                         else if (y < height)
-                             blocks[x, y, z] = BlockType.Dirt;
-                         else if (y == height)
-                         {
-                             blocks[x, y, z] = BlockType.Grass;
-
-                             if (height == 0)
-                             {
-                                 blocks[x, y, z] = BlockType.Stone;
-                             }
-                         }
-                         else
-                             blocks[x, y, z] = BlockType.Air;
-                     }  
+                {
+                    if (carve)
+                        blocks[x, y, z] = BlockType.Air;
+                    else
+                        blocks[x, y, z] = BlockType.Stone;
+                }
             }
-        }
     }
+
 
 
     public void GenerateMesh()
@@ -459,10 +279,5 @@ public class Chunk : MonoBehaviour
             case BlockType.Stone: return 2;
             default: return 0; // fallback
         }
-    }
-
-    public void SetChunkType(ChunkType type)
-    {
-        chunkType = type;
     }
 }
