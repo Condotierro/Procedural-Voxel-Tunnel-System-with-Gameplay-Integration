@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 public class Chunk : MonoBehaviour
 {
     public const int chunkSizeX = 16;
-    public const int chunkSizeY = 32;
+    public const int chunkSizeY = 64;
     public const int chunkSizeZ = 16;
     public int maxHeight = 32;
     public BlockType[,,] blocks;
