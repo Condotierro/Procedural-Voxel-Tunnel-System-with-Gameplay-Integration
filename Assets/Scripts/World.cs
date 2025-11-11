@@ -23,7 +23,7 @@ public class World : MonoBehaviour
         int playerChunkZ = Mathf.FloorToInt(player.position.z / Chunk.chunkSizeZ);
 
         float chunkMaxZ = (playerChunkZ + 1) * Chunk.chunkSizeZ;
-        TunnelPath.Instance.EnsureLengthUpTo(chunkMaxZ);
+        TunnelPath.Instance.EnsureLengthUpTo(chunkMaxZ + 250);
 
 
         HashSet<Vector2Int> needed = new HashSet<Vector2Int>();

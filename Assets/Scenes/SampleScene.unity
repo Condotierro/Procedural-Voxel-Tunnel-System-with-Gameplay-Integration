@@ -658,7 +658,7 @@ MonoBehaviour:
   maxSpeed: 25
   damping: 5
   verticalSmooth: 3
-  turnSpeed: 60
+  turnSpeed: 120
   tiltAngle: 15
   tiltSmooth: 5
   projectilePrefab: {fileID: 4100603652522241730, guid: f9bd59234821ebb4db4c269fc2624bac, type: 3}
@@ -701,7 +701,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e38c6a21ba5e2664f9570a6166aa199a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
+  maxHealth: 1000
   currentHealth: 0
   healthSlider: {fileID: 235643094}
 --- !u!1 &501397759
@@ -5673,14 +5673,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93abebfff4dea7c418b68a4d6771f955, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nodes: []
+  mainNodes: []
   stepLength: 6
-  turnChance: 0.15
+  turnChance: 0.35
   turnAngle: 0.61086524
   maxSamplesPerChunk: 64
-  offshootChance: 0.08
-  offshootStrength: 12
-  offshootLength: 5
+  branchChance: 0.2
+  minBranchLength: 25
+  minSideDistance: 15
+  branchCooldownNodes: 5
+  branchProbabilityIncrease: 0.003
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
