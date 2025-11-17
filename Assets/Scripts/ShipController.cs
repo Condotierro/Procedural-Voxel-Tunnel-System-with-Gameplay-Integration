@@ -29,6 +29,11 @@ public class ShipController : MonoBehaviour
     private AudioSource audioSource;
 
     public MapLayer currentMapLayer;
+
+    [SerializeField] GameObject debrisPrefab;
+    [SerializeField] float debrisSpawnChance = 0.15f; // 15% of destroyed blocks spawn debris
+    [SerializeField] float debrisForce = 8f;
+
     public enum MapLayer
     {
         Top,
@@ -36,9 +41,9 @@ public class ShipController : MonoBehaviour
         Bottom
     }
 
-    public const float TopHeight = 50;
-    public const float MediumHeight = 35;
-    public const float BottomHeight = 20;
+    public const float TopHeight = 55;
+    public const float MediumHeight = 33;
+    public const float BottomHeight = 11;
 
     public PlayerHealth health;
 
@@ -172,7 +177,7 @@ public class ShipController : MonoBehaviour
     {
         Vector3 localPos = hitPoint - chunk.transform.position;
 
-        int radius = 2; 
+        int radius = 2;
         int cx = Mathf.FloorToInt(localPos.x);
         int cy = Mathf.FloorToInt(localPos.y);
         int cz = Mathf.FloorToInt(localPos.z);
@@ -193,12 +198,21 @@ public class ShipController : MonoBehaviour
                             bx >= Chunk.chunkSizeX || by >= Chunk.chunkSizeY || bz >= Chunk.chunkSizeZ)
                             continue;
 
+                        if (chunk.blocks[bx, by, bz] != BlockType.Air)
+                        {
+                            // Spawn debris with some randomness
+                            if (Random.value < debrisSpawnChance)
+                            {
+                                SpawnVoxelDebris(chunk, bx, by, bz);
+                            }
+                        }
+
                         chunk.blocks[bx, by, bz] = BlockType.Air;
-                        
                     }
                 }
             }
         }
+
         if (!audioSource.isPlaying)
         {
             audioSource.clip = rammingSound;
@@ -210,6 +224,23 @@ public class ShipController : MonoBehaviour
         chunk.GenerateMesh();
         chunk.UpdateCollider();
     }
+
+    void SpawnVoxelDebris(Chunk chunk, int bx, int by, int bz)
+    {
+        Vector3 worldPos = chunk.transform.position + new Vector3(bx + 0.5f, by + 0.5f, bz + 0.5f);
+
+        GameObject debris = Instantiate(debrisPrefab, worldPos, Random.rotation);
+
+        Rigidbody rb = debris.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            Vector3 randomDir = Random.onUnitSphere;
+            rb.AddForce(randomDir * debrisForce, ForceMode.Impulse);
+        }
+
+        Destroy(debris, 4f); // auto cleanup
+    }
+
 
     void HandleShooting()
     {

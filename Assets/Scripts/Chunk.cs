@@ -19,6 +19,10 @@ public class Chunk : MonoBehaviour
     public int chunkZ;
 
     public Material[] materials;
+    public TunnelPath layer1;
+    public TunnelPath layer2;
+    public TunnelPath layer3;
+    public GameObject connectionPrefab;
 
     void Start()
     {
@@ -61,6 +65,8 @@ public class Chunk : MonoBehaviour
         UpdateCollider(); 
     }
 
+    public List<Vector3> validPoses = new List<Vector3>();
+
     void GenerateBlocks()
     {
         blocks = new BlockType[chunkSizeX, chunkSizeY, chunkSizeZ];
@@ -75,18 +81,77 @@ public class Chunk : MonoBehaviour
 
                 Vector2 worldPos = new Vector2(wx, wz);
 
-                float distSq = TunnelPath.Instance.DistanceSqToPath(worldPos);
-
-                bool carve = distSq < (tunnelRadius * tunnelRadius * 3);
+                float distSq1 = layer1.DistanceSqToPath(worldPos);
+                float distSq2 = layer2.DistanceSqToPath(worldPos);
+                float distSq3 = layer3.DistanceSqToPath(worldPos);
+                bool carve1 = distSq1 < (tunnelRadius * tunnelRadius * 3);
+                bool carve2 = distSq2 < (tunnelRadius * tunnelRadius * 3);
+                bool carve3 = distSq3 < (tunnelRadius * tunnelRadius * 3);
 
                 for (int y = 0; y < chunkSizeY; y++)
                 {
-                    if (carve)
-                        blocks[x, y, z] = BlockType.Air;
-                    else
-                        blocks[x, y, z] = BlockType.Stone;
+                    bool upperOverlap = carve1 && carve2;
+                    bool lowerOverlap = carve2 && carve3;
+
+                    if (upperOverlap)
+                    {
+                        validPoses.Add(new Vector3(wx + 0.5f, 5, wz + 0.5f));
+                    }
+                    else if (lowerOverlap)
+                    {
+                        validPoses.Add(new Vector3(wx + 0.5f, 23, wz + 0.5f));
+                    }
+
+
+                    if (y < 22)
+                    {
+                        if (carve1)
+                            blocks[x, y, z] = BlockType.Air;
+                        else
+                            blocks[x, y, z] = BlockType.Stone;
+                        continue;
+                    }
+                    if (y < 44)
+                    {
+                        if (carve2)
+                            blocks[x, y, z] = BlockType.Air;
+                        else
+                            blocks[x, y, z] = BlockType.Stone;
+                        continue;
+                    }
+                    if (y >= 44)
+                    {
+                        if (carve3)
+                            blocks[x, y, z] = BlockType.Air;
+                        else
+                            blocks[x, y, z] = BlockType.Dirt;
+                        continue;
+                    }
                 }
             }
+
+        if (validPoses.Count > 0)
+        {
+            // Compute average center point
+            Vector3 avg = Vector3.zero;
+            foreach (var p in validPoses)
+                avg += p;
+            avg /= validPoses.Count;
+
+            // Spawn up to 3 objects
+            int spawnCount = Mathf.Min(1, validPoses.Count);
+            for (int i = 0; i < spawnCount; i++)
+            {
+                //// Add small randomness (±1 block)
+                //Vector3 jitter = new Vector3(
+                //    Random.Range(-0.8f, 0.8f),
+                //    0f,
+                //    Random.Range(-0.8f, 0.8f)
+                //);
+
+                SpawnTunnelConnectionObject(avg);
+            }
+        }
     }
 
 
@@ -286,4 +351,14 @@ public class Chunk : MonoBehaviour
             default: return 0; // fallback
         }
     }
+
+    void SpawnTunnelConnectionObject(Vector3 worldPos)
+    {
+        if (connectionPrefab == null) return;
+
+        // Prevent duplicates: check a hashset if needed
+        GameObject geyser = Instantiate(connectionPrefab, worldPos, Quaternion.identity);
+        geyser.transform.rotation = Quaternion.Euler(new Vector3(-90,0,0));
+    }
+
 }

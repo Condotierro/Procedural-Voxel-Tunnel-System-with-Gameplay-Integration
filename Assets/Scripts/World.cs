@@ -11,6 +11,10 @@ public class World : MonoBehaviour
     public Transform player;
 
     private Dictionary<Vector2Int, Chunk> chunks = new Dictionary<Vector2Int, Chunk>();
+    public TunnelPath layer1;
+    public TunnelPath layer2;
+    public TunnelPath layer3;
+    public GameObject connectionObject;
 
     void Update()
     {
@@ -23,7 +27,9 @@ public class World : MonoBehaviour
         int playerChunkZ = Mathf.FloorToInt(player.position.z / Chunk.chunkSizeZ);
 
         float chunkMaxZ = (playerChunkZ + 1) * Chunk.chunkSizeZ;
-        TunnelPath.Instance.EnsureLengthUpTo(chunkMaxZ + 250);
+        layer1.EnsureLengthUpTo(chunkMaxZ + 250);
+        layer2.EnsureLengthUpTo(chunkMaxZ + 250);
+        layer3.EnsureLengthUpTo(chunkMaxZ + 250);
 
 
         HashSet<Vector2Int> needed = new HashSet<Vector2Int>();
@@ -70,9 +76,11 @@ public class World : MonoBehaviour
         chunk.chunkZ = cz;
         chunk.scale = scale;
         chunk.materials = materials;
-
+        chunk.layer1 = layer1;
+        chunk.layer2 = layer2;
+        chunk.layer3 = layer3;
         chunkObj.transform.position = new Vector3(cx * Chunk.chunkSizeX, 0, cz * Chunk.chunkSizeZ);
-
+        chunk.connectionPrefab = connectionObject;
         chunks[new Vector2Int(cx, cz)] = chunk;
     }
 }
