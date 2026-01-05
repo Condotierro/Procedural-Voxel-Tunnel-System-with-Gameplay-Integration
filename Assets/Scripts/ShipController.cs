@@ -61,6 +61,8 @@ public class ShipController : MonoBehaviour
 
     void LowerLayer()
     {
+        if (hasSpaceUnderneath() == false) { return; }
+        //implement raycast check if free space?
         switch (currentMapLayer)
         {
             case MapLayer.Top:
@@ -74,6 +76,8 @@ public class ShipController : MonoBehaviour
 
     void HigherLayer()
     {
+        if(isNearGeyser() == false) { return; }
+
         switch (currentMapLayer)
         {
             case MapLayer.Bottom:
@@ -85,16 +89,52 @@ public class ShipController : MonoBehaviour
         }
     }
 
+
+    private bool hasSpaceUnderneath()
+    {
+        RaycastHit hit;
+
+        if (Physics.Raycast(
+            transform.position - new Vector3(0,5,0),
+            Vector3.down,
+            out hit,
+            10f
+        ))
+        {
+            if(hit.collider.TryGetComponent<Chunk>(out var target))
+    {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    [SerializeField] Collider[] results = new Collider[10];
+    [SerializeField] float checkRadius = 10f;
+    [SerializeField] LayerMask proceduralLayer;
+
+    private bool isNearGeyser()
+    {
+        int count = Physics.OverlapSphereNonAlloc(
+            transform.position,
+            checkRadius,
+            results,
+            proceduralLayer
+        );
+        Debug.Log(count );
+        return count > 0;
+    }
+
     private void Update()
     {
         HandleShooting();
 
-        if (Input.GetKeyDown(KeyCode.O)) 
+        if (Input.GetKeyDown(KeyCode.P)) 
         {
             HigherLayer();
         }
 
-        if (Input.GetKeyDown(KeyCode.P))
+        if (Input.GetKeyDown(KeyCode.O))
         {
             LowerLayer();
         }

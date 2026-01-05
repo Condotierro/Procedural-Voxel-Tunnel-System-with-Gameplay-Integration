@@ -131,7 +131,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9019313}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: FirePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -201,9 +201,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -516098083770646512, guid: f465b59310f80a441abee2b739eef5f6, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f465b59310f80a441abee2b739eef5f6, type: 3}
       propertyPath: m_Name
       value: ship
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: f465b59310f80a441abee2b739eef5f6, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 8821623529969584324, guid: f465b59310f80a441abee2b739eef5f6, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -540,7 +552,7 @@ GameObject:
   - component: {fileID: 463392308}
   - component: {fileID: 463392309}
   - component: {fileID: 463392310}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -671,6 +683,21 @@ MonoBehaviour:
   debrisSpawnChance: 0.15
   debrisForce: 8
   health: {fileID: 463392310}
+  results:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  checkRadius: 20
+  proceduralLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!65 &463392309
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -718,7 +745,7 @@ GameObject:
   - component: {fileID: 501397760}
   - component: {fileID: 501397762}
   - component: {fileID: 501397761}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Particle System (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5864,7 +5891,7 @@ GameObject:
   - component: {fileID: 778292169}
   - component: {fileID: 778292171}
   - component: {fileID: 778292170}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Particle System
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11027,8 +11054,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 180.86, y: 127.6}
-  m_SizeDelta: {x: 361.722, y: 255.2}
+  m_AnchoredPosition: {x: 180.85999, y: 108.681915}
+  m_SizeDelta: {x: 361.722, y: 217.3638}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1740593635
 MonoBehaviour:
@@ -11050,18 +11077,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Mouse1 - shoot
+  m_text: 'LMB - shoot
 
     WS - fly forward/back
 
-    AD - strafe left/right
+    AD - fly left/right
 
-    ctrl
-    - descend
+    p
+    - ascend one level
 
-    o - ascend one level
-
-    p - descend one level'
+    o - descend one level'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11225,7 +11250,7 @@ GameObject:
   - component: {fileID: 2092418038}
   - component: {fileID: 2092418037}
   - component: {fileID: 2092418036}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GroundChecker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
