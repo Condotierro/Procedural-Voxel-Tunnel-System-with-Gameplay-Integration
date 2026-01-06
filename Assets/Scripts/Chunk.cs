@@ -102,6 +102,11 @@ public class Chunk : MonoBehaviour
                         validPoses.Add(new Vector3(wx + 0.5f, 23, wz + 0.5f));
                     }
 
+                    if (y == 0)
+                    {
+                        blocks[x, y, z] = BlockType.Stone;
+                        continue;
+                    }
 
                     if (y < 22)
                     {
