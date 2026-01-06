@@ -107,7 +107,7 @@ public class Chunk : MonoBehaviour
 
                     if (y == 0)
                     {
-                        blocks[x, y, z] = BlockType.Stone;
+                        blocks[x, y, z] = BlockType.Sand;
                         continue;
                     }
 
@@ -116,7 +116,7 @@ public class Chunk : MonoBehaviour
                         if (carve1)
                             blocks[x, y, z] = BlockType.Air;
                         else
-                            blocks[x, y, z] = BlockType.Stone;
+                            blocks[x, y, z] = BlockType.DeepStone;
                         continue;
                     }
                     if (y < 44)

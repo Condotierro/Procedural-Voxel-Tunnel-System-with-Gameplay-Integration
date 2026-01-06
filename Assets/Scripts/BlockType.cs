@@ -5,4 +5,5 @@ public enum BlockType
     Grass = 0,
     Stone = 2,
     DeepStone = 3,
+    Sand = 4,
 }
