@@ -27,6 +27,16 @@ public class Chunk : MonoBehaviour
     [SerializeField] int atlasSizeInTiles = 4; // 4x4, 8x8, etc.
     [SerializeField] float uvPadding = 0.001f; // prevents bleeding
 
+    Vector2[][] cachedUVs;
+
+    void Awake()
+    {
+        cachedUVs = new Vector2[System.Enum.GetValues(typeof(BlockType)).Length][];
+
+        for (int i = 0; i < cachedUVs.Length; i++)
+            cachedUVs[i] = BuildFaceUVs((BlockType)i);
+    }
+
     void Start()
     {
         meshFilter = gameObject.AddComponent<MeshFilter>();
@@ -216,107 +226,96 @@ public class Chunk : MonoBehaviour
         BlockType block = blocks[x, y, z];
         Vector2[] faceUVs = GetFaceUVs(block);
 
-        void AddFace(Vector3[] faceVerts, int[] faceTris)
+        void AddFace(
+            Vector3 v0,
+            Vector3 v1,
+            Vector3 v2,
+            Vector3 v3,
+            bool ccw)
         {
-            int startIndex = verts.Count;
-            verts.AddRange(faceVerts);
+            int start = verts.Count;
 
-            for (int i = 0; i < faceTris.Length; i++)
-                tris.Add(startIndex + faceTris[i]);
+            verts.Add(v0);
+            verts.Add(v1);
+            verts.Add(v2);
+            verts.Add(v3);
 
-            uvs.AddRange(faceUVs);
+            var t = ccw ? trisCCW : trisCW;
+            tris.Add(start + t[0]);
+            tris.Add(start + t[1]);
+            tris.Add(start + t[2]);
+            tris.Add(start + t[3]);
+            tris.Add(start + t[4]);
+            tris.Add(start + t[5]);
+
+            uvs.Add(faceUVs[0]);
+            uvs.Add(faceUVs[1]);
+            uvs.Add(faceUVs[2]);
+            uvs.Add(faceUVs[3]);
         }
 
-        // TOP
+        // TOP (CCW)
         if (y + 1 >= chunkSizeY || blocks[x, y + 1, z] == BlockType.Air)
-        {
             AddFace(
-                new Vector3[]
-                {
-                pos + new Vector3(0,1,0),
-                pos + new Vector3(1,1,0),
-                pos + new Vector3(1,1,1),
-                pos + new Vector3(0,1,1)
-                },
-                new int[] { 0, 2, 1, 0, 3, 2 }
+                pos + new Vector3(0, 1, 0),
+                pos + new Vector3(1, 1, 0),
+                pos + new Vector3(1, 1, 1),
+                pos + new Vector3(0, 1, 1),
+                true
             );
-        }
 
-        // BOTTOM
+        // BOTTOM (CW)
         if (y - 1 < 0 || blocks[x, y - 1, z] == BlockType.Air)
-        {
             AddFace(
-                new Vector3[]
-                {
-                pos + new Vector3(0,0,0),
-                pos + new Vector3(1,0,0),
-                pos + new Vector3(1,0,1),
-                pos + new Vector3(0,0,1)
-                },
-                new int[] { 0, 1, 2, 0, 2, 3 }
+                pos + new Vector3(0, 0, 0),
+                pos + new Vector3(1, 0, 0),
+                pos + new Vector3(1, 0, 1),
+                pos + new Vector3(0, 0, 1),
+                false
             );
-        }
 
-        // RIGHT
+        // RIGHT (CW)
         if (x + 1 >= chunkSizeX || blocks[x + 1, y, z] == BlockType.Air)
-        {
             AddFace(
-                new Vector3[]
-                {
-                pos + new Vector3(1,0,0),
-                pos + new Vector3(1,1,0),
-                pos + new Vector3(1,1,1),
-                pos + new Vector3(1,0,1)
-                },
-                new int[] { 0, 1, 2, 0, 2, 3 }
+                pos + new Vector3(1, 0, 0),
+                pos + new Vector3(1, 1, 0),
+                pos + new Vector3(1, 1, 1),
+                pos + new Vector3(1, 0, 1),
+                false
             );
-        }
 
-        // LEFT
+        // LEFT (CCW)
         if (x - 1 < 0 || blocks[x - 1, y, z] == BlockType.Air)
-        {
             AddFace(
-                new Vector3[]
-                {
-                pos + new Vector3(0,0,0),
-                pos + new Vector3(0,1,0),
-                pos + new Vector3(0,1,1),
-                pos + new Vector3(0,0,1)
-                },
-                new int[] { 0, 2, 1, 0, 3, 2 }
+                pos + new Vector3(0, 0, 0),
+                pos + new Vector3(0, 1, 0),
+                pos + new Vector3(0, 1, 1),
+                pos + new Vector3(0, 0, 1),
+                true
             );
-        }
 
-        // FRONT
+        // FRONT (CCW)
         if (z + 1 >= chunkSizeZ || blocks[x, y, z + 1] == BlockType.Air)
-        {
             AddFace(
-                new Vector3[]
-                {
-                pos + new Vector3(0,0,1),
-                pos + new Vector3(0,1,1),
-                pos + new Vector3(1,1,1),
-                pos + new Vector3(1,0,1)
-                },
-                new int[] { 0, 2, 1, 0, 3, 2 }
+                pos + new Vector3(0, 0, 1),
+                pos + new Vector3(0, 1, 1),
+                pos + new Vector3(1, 1, 1),
+                pos + new Vector3(1, 0, 1),
+                true
             );
-        }
 
-        // BACK
+        // BACK (CW)
         if (z - 1 < 0 || blocks[x, y, z - 1] == BlockType.Air)
-        {
             AddFace(
-                new Vector3[]
-                {
-                pos + new Vector3(0,0,0),
-                pos + new Vector3(0,1,0),
-                pos + new Vector3(1,1,0),
-                pos + new Vector3(1,0,0)
-                },
-                new int[] { 0, 1, 2, 0, 2, 3 }
+                pos + new Vector3(0, 0, 0),
+                pos + new Vector3(0, 1, 0),
+                pos + new Vector3(1, 1, 0),
+                pos + new Vector3(1, 0, 0),
+                false
             );
-        }
     }
+
+
 
 
     void SpawnTunnelConnectionObject(Vector3 worldPos)
@@ -353,4 +352,82 @@ public class Chunk : MonoBehaviour
         new Vector2(uMin, vMax)
         };
     }
+
+    // Quad triangle indices (shared by all faces)
+    static readonly int[] quadTris = { 0, 1, 2, 0, 2, 3 };
+
+    // Face vertex offsets
+    static readonly Vector3[] faceUp =
+{
+    new Vector3(0,1,1),
+    new Vector3(1,1,1),
+    new Vector3(1,1,0),
+    new Vector3(0,1,0)
+};
+
+static readonly Vector3[] faceDown =
+{
+    new Vector3(0,0,0),
+    new Vector3(1,0,0),
+    new Vector3(1,0,1),
+    new Vector3(0,0,1)
+};
+
+static readonly Vector3[] faceRight =
+{
+    new Vector3(1,0,1),
+    new Vector3(1,1,1),
+    new Vector3(1,1,0),
+    new Vector3(1,0,0)
+};
+
+static readonly Vector3[] faceLeft =
+{
+    new Vector3(0,0,0),
+    new Vector3(0,1,0),
+    new Vector3(0,1,1),
+    new Vector3(0,0,1)
+};
+
+static readonly Vector3[] faceFront =
+{
+    new Vector3(0,0,1),
+    new Vector3(1,0,1),
+    new Vector3(1,1,1),
+    new Vector3(0,1,1)
+};
+
+static readonly Vector3[] faceBack =
+{
+    new Vector3(1,0,0),
+    new Vector3(0,0,0),
+    new Vector3(0,1,0),
+    new Vector3(1,1,0)
+};
+
+    Vector2[] BuildFaceUVs(BlockType type)
+    {
+        int index = (int)type;
+
+        int x = index % atlasSizeInTiles;
+        int y = atlasSizeInTiles - 1 - (index / atlasSizeInTiles);
+
+        float tileSize = 1f / atlasSizeInTiles;
+
+        float uMin = x * tileSize + uvPadding;
+        float vMin = y * tileSize + uvPadding;
+        float uMax = (x + 1) * tileSize - uvPadding;
+        float vMax = (y + 1) * tileSize - uvPadding;
+
+        return new Vector2[]
+        {
+        new Vector2(uMin, vMin),
+        new Vector2(uMax, vMin),
+        new Vector2(uMax, vMax),
+        new Vector2(uMin, vMax)
+        };
+    }
+
+    static readonly int[] trisCW = { 0, 1, 2, 0, 2, 3 };
+    static readonly int[] trisCCW = { 0, 2, 1, 0, 3, 2 };
 }
