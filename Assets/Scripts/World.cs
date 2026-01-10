@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public class World : MonoBehaviour
 {
@@ -18,7 +21,31 @@ public class World : MonoBehaviour
 
     void Update()
     {
+        // ----- Managed heap (C# / GC) -----
+        //long managedBefore = GC.GetTotalMemory(false);
+
         UpdateChunks();
+
+        //long managedAfter = GC.GetTotalMemory(false);
+        //long managedDelta = managedAfter - managedBefore;
+        //
+        //// ----- Unity native memory (engine allocators) -----
+        //long unityAllocated = Profiler.GetTotalAllocatedMemoryLong();
+        //long unityReserved = Profiler.GetTotalReservedMemoryLong();
+        //
+        //// ----- OS-level physical RAM (process working set) -----
+        //long processRam = Process.GetCurrentProcess().WorkingSet64;
+        //
+        //// ----- Record metrics (BYTES) -----
+        //RuntimeMetrics.Record("Memory.Managed.Delta.Bytes", managedDelta);
+        //RuntimeMetrics.Record("Memory.Managed.Total.Bytes", managedAfter);
+        //
+        //RuntimeMetrics.Record("Memory.Unity.Allocated.Bytes", unityAllocated);
+        //RuntimeMetrics.Record("Memory.Unity.Reserved.Bytes", unityReserved);
+        //
+        //RuntimeMetrics.Record("Memory.Process.WorkingSet.Bytes", processRam);
+
+        RuntimeMetrics.Record("FrameTime.ms", Time.deltaTime * 1000f);
     }
 
     void UpdateChunks()

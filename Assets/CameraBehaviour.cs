@@ -1,13 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraBehaviour : MonoBehaviour
 {
-    public Transform ship;
-    public float speed;
-    public float heightOfCamera;
-    public float cameraZoffset;
+    [SerializeField] Transform ship;
+    [SerializeField] float speed;
+    [SerializeField] float heightOfCamera;
+    [SerializeField] float cameraZoffset;
 
     void LateUpdate()
     {
