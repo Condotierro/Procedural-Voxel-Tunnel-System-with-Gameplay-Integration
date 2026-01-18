@@ -20,7 +20,7 @@ public class ShipController : MonoBehaviour
     private float currentTilt = 0f;
 
     [Header("Weapons")]
-    public GameObject projectilePrefab;
+    public GameObject[] projectilePrefab;
     public Transform firePoint; 
     public float projectileSpeed = 50f;
     public float fireCooldown = 0.2f;
@@ -37,6 +37,13 @@ public class ShipController : MonoBehaviour
     [SerializeField] float debrisForce = 8f;
 
     [SerializeField] TextMeshProUGUI scoreText;
+
+
+    public int firemode = 0;
+    public const int maxFiremode = 3;
+
+    [SerializeField] TextMeshProUGUI firemodeText;
+
 
     public enum MapLayer
     {
@@ -142,6 +149,11 @@ public class ShipController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.O))
         {
             LowerLayer();
+        }
+
+        if(Input.GetKeyDown(KeyCode.E))
+        {
+            SwitchFiremode();
         }
 
         if(health.currentHealth <= 0)
@@ -305,9 +317,9 @@ public class ShipController : MonoBehaviour
         {
             lastFireTime = Time.time;
 
-            if (projectilePrefab && firePoint)
+            if (projectilePrefab[firemode] && firePoint)
             {
-                GameObject proj = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+                GameObject proj = Instantiate(projectilePrefab[firemode], firePoint.position, firePoint.rotation);
                 Rigidbody prb = proj.GetComponent<Rigidbody>();
 
                 if (prb)
@@ -320,4 +332,31 @@ public class ShipController : MonoBehaviour
         }
     }
 
+    public void SwitchFiremode()
+    {
+        if (firemode == maxFiremode)
+        {
+            firemode = 0;
+        }
+        else
+        {
+            firemode++;
+        }
+
+        switch(firemode)
+        {
+            case 0:
+                firemodeText.text = "Firemode : Default";
+                break;
+            case 1:
+                firemodeText.text = "Firemode : Marker";
+                break;
+            case 2:
+                firemodeText.text = "Firemode : Large";
+                break;
+            case 3:
+                firemodeText.text = "Firemode : Creative";
+                break;
+        }
+    }
 }

@@ -6,4 +6,6 @@ public enum BlockType
     Stone = 2,
     DeepStone = 3,
     Sand = 4,
+    Obsol = 7,
+    Burned = 5,
 }

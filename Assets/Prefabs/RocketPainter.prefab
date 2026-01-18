@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 722621135155771074}
   - component: {fileID: 152348329308607981}
   m_Layer: 0
-  m_Name: RocketNew
+  m_Name: RocketPainter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -64,7 +64,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 7922251121040759823, guid: 63c62bd6da46351459e8c8dafb9831ce, type: 3}
+  - {fileID: 2100000, guid: d9ccceaa33026a346a88f214770b8202, type: 2}
   - {fileID: -6478536213147159724, guid: 63c62bd6da46351459e8c8dafb9831ce, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -149,9 +149,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 40
   lifetime: 5
-  destroyRadius: 2
+  destroyRadius: 4
   hitForce: 5
-  mode: 0
+  mode: 1
   explosionPrefab: {fileID: 6427066460482060158, guid: 749a49a9817bca84bb8cedba26bf7037, type: 3}
   explosionSound: {fileID: 8300000, guid: 1a6a8c1da39fb3a419e5b9e3862160db, type: 3}
   explosionVolume: 0.8
