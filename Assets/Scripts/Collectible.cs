@@ -1,18 +1,45 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Collectible : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private int value = 1;
+    [SerializeField] private int type = 0;
+
+    public ShipController shipController;
+
+    public void initialize(ShipController sc)
     {
-        
+        shipController = sc;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnTriggerEnter(Collider other)
     {
-        
+        // Layer check is faster than tag
+        if (other.gameObject.layer != LayerMask.NameToLayer("Player"))
+            return;
+
+        Collect();
+    }
+
+    private void Update()
+    {
+        transform.Rotate(0f, 90f * Time.deltaTime, 0f, Space.World);
+    }
+
+    private void Collect()
+    {
+        if(type == 0)
+        {
+            shipController.collected += value;
+        }
+        else
+        {
+            shipController.health.TakeDamage(-value);
+        }
+
+        Destroy(gameObject);
     }
 }

@@ -24,14 +24,20 @@ public class Chunk : MonoBehaviour
     public TunnelPath layer2;
     public TunnelPath layer3;
     public GameObject connectionPrefab;
+    public GameObject[] collectibles;
 
     [SerializeField] int atlasSizeInTiles = 4; // 4x4, 8x8, etc.
     [SerializeField] float uvPadding = 0.001f; // prevents bleeding
 
     Vector2[][] cachedUVs;
 
+    public List<GameObject> registered;
+
+
     void Awake()
     {
+        registered = new List<GameObject>();
+
         cachedUVs = new Vector2[System.Enum.GetValues(typeof(BlockType)).Length][];
 
         for (int i = 0; i < cachedUVs.Length; i++)
@@ -85,12 +91,16 @@ public class Chunk : MonoBehaviour
     }
 
     public List<Vector3> validPoses = new List<Vector3>();
-
+    public List<Vector3> validCollectibles = new List<Vector3>();
+    public float collectibleChance = 0.0025f; //per column
     void GenerateBlocks()
     {
         blocks = new BlockType[chunkSizeX, chunkSizeY, chunkSizeZ];
 
         float tunnelRadius = 3.5f;
+        float tunnelRadiusSq = tunnelRadius * tunnelRadius * 3f;
+
+        validPoses.Clear();
 
         for (int x = 0; x < chunkSizeX; x++)
             for (int z = 0; z < chunkSizeZ; z++)
@@ -103,24 +113,30 @@ public class Chunk : MonoBehaviour
                 float distSq1 = layer1.DistanceSqToPath(worldPos);
                 float distSq2 = layer2.DistanceSqToPath(worldPos);
                 float distSq3 = layer3.DistanceSqToPath(worldPos);
-                bool carve1 = distSq1 < (tunnelRadius * tunnelRadius * 3);
-                bool carve2 = distSq2 < (tunnelRadius * tunnelRadius * 3);
-                bool carve3 = distSq3 < (tunnelRadius * tunnelRadius * 3);
+
+                bool carve1 = distSq1 < tunnelRadiusSq;
+                bool carve2 = distSq2 < tunnelRadiusSq;
+                bool carve3 = distSq3 < tunnelRadiusSq;
+
+                TrySpawnCollectible(wx, wz, carve1, carve2, carve3);
+
+                // -------- MOVED OUT OF Y LOOP (CRITICAL FIX) --------
+                bool upperOverlap = carve1 && carve2;
+                bool lowerOverlap = carve2 && carve3;
+
+                
+                if (upperOverlap)
+                {
+                    validPoses.Add(new Vector3(wx + 0.5f, 5f, wz + 0.5f));
+                }
+                else if (lowerOverlap)
+                {
+                    validPoses.Add(new Vector3(wx + 0.5f, 22f, wz + 0.5f));
+                }
+                
 
                 for (int y = 0; y < chunkSizeY; y++)
                 {
-                    bool upperOverlap = carve1 && carve2;
-                    bool lowerOverlap = carve2 && carve3;
-
-                    if (upperOverlap)
-                    {
-                        validPoses.Add(new Vector3(wx + 0.5f, 5, wz + 0.5f));
-                    }
-                    else if (lowerOverlap)
-                    {
-                        validPoses.Add(new Vector3(wx + 0.5f, 23, wz + 0.5f));
-                    }
-
                     if (y == 0)
                     {
                         blocks[x, y, z] = BlockType.Sand;
@@ -129,54 +145,30 @@ public class Chunk : MonoBehaviour
 
                     if (y < 22)
                     {
-                        if (carve1)
-                            blocks[x, y, z] = BlockType.Air;
-                        else
-                            blocks[x, y, z] = BlockType.DeepStone;
-                        continue;
+                        blocks[x, y, z] = carve1 ? BlockType.Air : BlockType.DeepStone;
                     }
-                    if (y < 44)
+                    else if (y < 44)
                     {
-                        if (carve2)
-                            blocks[x, y, z] = BlockType.Air;
-                        else
-                            blocks[x, y, z] = BlockType.Stone;
-                        continue;
+                        blocks[x, y, z] = carve2 ? BlockType.Air : BlockType.Stone;
                     }
-                    if (y >= 44)
+                    else
                     {
-                        if (carve3)
-                            blocks[x, y, z] = BlockType.Air;
-                        else
-                            blocks[x, y, z] = BlockType.Dirt;
-                        continue;
+                        blocks[x, y, z] = carve3 ? BlockType.Air : BlockType.Dirt;
                     }
                 }
             }
 
         if (validPoses.Count > 0)
         {
-            // Compute average center point
             Vector3 avg = Vector3.zero;
             foreach (var p in validPoses)
                 avg += p;
             avg /= validPoses.Count;
 
-            // Spawn up to 3 objects
-            int spawnCount = Mathf.Min(1, validPoses.Count);
-            for (int i = 0; i < spawnCount; i++)
-            {
-                //// Add small randomness (±1 block)
-                //Vector3 jitter = new Vector3(
-                //    Random.Range(-0.8f, 0.8f),
-                //    0f,
-                //    Random.Range(-0.8f, 0.8f)
-                //);
-
-                SpawnTunnelConnectionObject(avg);
-            }
+            SpawnTunnelConnectionObject(avg);
         }
     }
+
 
 
     static Stopwatch sw = new Stopwatch();
@@ -333,6 +325,7 @@ public class Chunk : MonoBehaviour
 
         // Prevent duplicates: check a hashset if needed
         GameObject geyser = Instantiate(connectionPrefab, worldPos, Quaternion.identity);
+        registered.Add(geyser);
         geyser.transform.rotation = Quaternion.Euler(new Vector3(-90,0,0));
     }
 
@@ -439,4 +432,37 @@ static readonly Vector3[] faceBack =
 
     static readonly int[] trisCW = { 0, 1, 2, 0, 2, 3 };
     static readonly int[] trisCCW = { 0, 2, 1, 0, 3, 2 };
+
+    void TrySpawnCollectible(
+    float wx, float wz,
+    bool carve1, bool carve2, bool carve3)
+    {
+        if (Random.value > collectibleChance)
+            return;
+
+        Vector3 pos;
+        GameObject prefab;
+
+        if (carve1 && !carve2)
+        {
+            pos = new Vector3(wx + 0.5f, 11f, wz + 0.5f);
+            prefab = collectibles[1];
+        }
+        else if (carve2 && !carve3)
+        {
+            pos = new Vector3(wx + 0.5f, 33f, wz + 0.5f);
+            prefab = Random.value < 0.5f ? collectibles[0] : collectibles[1];
+        }
+        else if (carve3)
+        {
+            pos = new Vector3(wx + 0.5f, 55f, wz + 0.5f);
+            prefab = collectibles[0];
+        }
+        else
+            return;
+
+        GameObject spawned = Instantiate(prefab, pos, Quaternion.identity);
+        registered.Add(spawned);
+    }
+
 }

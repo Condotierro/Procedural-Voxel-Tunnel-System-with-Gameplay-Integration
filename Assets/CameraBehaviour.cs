@@ -6,11 +6,11 @@ public class CameraBehaviour : MonoBehaviour
     [SerializeField] float speed;
     [SerializeField] float heightOfCamera;
     [SerializeField] float cameraZoffset;
-    public bool isAlive = true;
+    public PlayerHealth health;
 
     void LateUpdate()
     {
-        if (isAlive)
+        if (health.currentHealth > 0f)
         {
             Vector3 position = Vector3.Lerp(transform.position,
                 ship.position + 

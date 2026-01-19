@@ -44,6 +44,10 @@ public class ShipController : MonoBehaviour
 
     [SerializeField] TextMeshProUGUI firemodeText;
 
+    [SerializeField] ParticleSystem p1;
+    [SerializeField] ParticleSystem p2;
+
+    [SerializeField] GameObject RestartText;
 
     public enum MapLayer
     {
@@ -74,7 +78,7 @@ public class ShipController : MonoBehaviour
     {
         if (hasSpaceUnderneath() == false) { return; }
         //implement raycast check if free space?
-        health.TakeDamage(-25f);
+        //health.TakeDamage(-25f);
         switch (currentMapLayer)
         {
             case MapLayer.Top:
@@ -158,16 +162,22 @@ public class ShipController : MonoBehaviour
 
         if(health.currentHealth <= 0)
         {
+            rb.constraints = RigidbodyConstraints.None;
+
+            p1.Stop();
+            p2.Stop();
             rb.useGravity = true;
+            RestartText.SetActive(true);
             this.gameObject.GetComponent<ShipController>().enabled = false;
         }
     }
 
     public int brokenBlocks = 0;
     int crashes = 0;
+    public int collected = 0;
     private void UpdateScore()
     {
-        float score = Mathf.Max(0,(this.gameObject.transform.position.z * 1f) + (brokenBlocks * 5) - (crashes * 20));
+        float score = Mathf.Max(0,(this.gameObject.transform.position.z * 1f) + (brokenBlocks * 5) - (crashes * 20)) + collected;
         scoreText.text = "Score : " + score.ToString("0.00");
     }
 
@@ -231,6 +241,7 @@ public class ShipController : MonoBehaviour
         Chunk chunk = collision.collider.GetComponentInParent<Chunk>();
         if (chunk != null)
         {
+            if (health.currentHealth < 0) { return; }
             HandleVoxelCollision(chunk, collision.contacts[0].point);
         }
     }

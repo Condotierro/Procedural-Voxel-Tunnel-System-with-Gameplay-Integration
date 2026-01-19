@@ -19,6 +19,17 @@ public class World : MonoBehaviour
     public TunnelPath layer2;
     public TunnelPath layer3;
     public GameObject connectionObject;
+    public GameObject[] collectibles;
+
+
+    private void Awake()
+    {
+        foreach (GameObject g in collectibles)
+        {
+            Collectible c = g.GetComponent<Collectible>();
+            c.initialize(player.gameObject.GetComponent<ShipController>());
+        }
+    }
 
     void Update()
     {
@@ -84,6 +95,11 @@ public class World : MonoBehaviour
         {
             if (!needed.Contains(kvp.Key))
             {
+                List<GameObject> toClean = kvp.Value.gameObject.GetComponent<Chunk>().registered;
+                foreach (var f in toClean)
+                {
+                    Destroy(f);
+                }
                 Destroy(kvp.Value.gameObject);
                 toRemove.Add(kvp.Key);
             }
@@ -110,6 +126,7 @@ public class World : MonoBehaviour
         chunk.layer3 = layer3;
         chunkObj.transform.position = new Vector3(cx * Chunk.chunkSizeX, 0, cz * Chunk.chunkSizeZ);
         chunk.connectionPrefab = connectionObject;
+        chunk.collectibles = collectibles;
         chunks[new Vector2Int(cx, cz)] = chunk;
     }
 }
