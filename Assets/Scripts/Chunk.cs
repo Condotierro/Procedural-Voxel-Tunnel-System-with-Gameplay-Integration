@@ -120,7 +120,6 @@ public class Chunk : MonoBehaviour
 
                 TrySpawnCollectible(wx, wz, carve1, carve2, carve3);
 
-                // -------- MOVED OUT OF Y LOOP (CRITICAL FIX) --------
                 bool upperOverlap = carve1 && carve2;
                 bool lowerOverlap = carve2 && carve3;
 
@@ -323,7 +322,6 @@ public class Chunk : MonoBehaviour
     {
         if (connectionPrefab == null) return;
 
-        // Prevent duplicates: check a hashset if needed
         GameObject geyser = Instantiate(connectionPrefab, worldPos, Quaternion.identity);
         registered.Add(geyser);
         geyser.transform.rotation = Quaternion.Euler(new Vector3(-90,0,0));
@@ -355,10 +353,10 @@ public class Chunk : MonoBehaviour
         };
     }
 
-    // Quad triangle indices (shared by all faces)
+    // quad triangle indices (shared by all faces)
     static readonly int[] quadTris = { 0, 1, 2, 0, 2, 3 };
 
-    // Face vertex offsets
+    // face vertex offsets
     static readonly Vector3[] faceUp =
 {
     new Vector3(0,1,1),

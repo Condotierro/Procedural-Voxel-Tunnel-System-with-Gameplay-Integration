@@ -14,7 +14,7 @@ public class Collectible : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Layer check is faster than tag
+        // layer check is faster than tag
         if (other.gameObject.layer != LayerMask.NameToLayer("Player"))
             return;
 

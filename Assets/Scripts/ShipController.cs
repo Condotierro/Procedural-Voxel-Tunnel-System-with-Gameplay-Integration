@@ -33,7 +33,7 @@ public class ShipController : MonoBehaviour
     public MapLayer currentMapLayer;
 
     [SerializeField] GameObject debrisPrefab;
-    [SerializeField] float debrisSpawnChance = 1f; // 15% of destroyed blocks spawn debris
+    [SerializeField] float debrisSpawnChance = 1f; 
     [SerializeField] float debrisForce = 8f;
 
     [SerializeField] TextMeshProUGUI scoreText;
@@ -77,7 +77,7 @@ public class ShipController : MonoBehaviour
     void LowerLayer()
     {
         if (hasSpaceUnderneath() == false) { return; }
-        //implement raycast check if free space?
+        //i guess implement raycast check if free space?
         //health.TakeDamage(-25f);
         switch (currentMapLayer)
         {
@@ -273,7 +273,7 @@ public class ShipController : MonoBehaviour
 
                         if (chunk.blocks[bx, by, bz] != BlockType.Air)
                         {
-                            // Spawn debris with some randomness
+                            // spawn debris with some randomness
                             if (Random.value < debrisSpawnChance)
                             {
                                 SpawnVoxelDebris(chunk, bx, by, bz);

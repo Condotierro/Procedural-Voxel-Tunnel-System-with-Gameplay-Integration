@@ -7,8 +7,8 @@ public class PathGenerator : MonoBehaviour
     public enum TileType
     {
         Start,
-        StraightZ,     // Forward / Backward
-        StraightX,     // Left / Right
+        StraightZ,     
+        StraightX,     
 
         TurnLeftStart,
         TurnLeftEnd,

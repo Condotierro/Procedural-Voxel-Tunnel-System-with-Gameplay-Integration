@@ -75,7 +75,7 @@ public class World : MonoBehaviour
 
         HashSet<Vector2Int> needed = new HashSet<Vector2Int>();
 
-        // Load chunks within render distance
+        // load chunks within render distance
         for (int dx = -renderDistance; dx <= renderDistance; dx++)
         {
             for (int dz = -renderDistance; dz <= renderDistance; dz++)
@@ -90,7 +90,7 @@ public class World : MonoBehaviour
             }
         }
 
-        // Unload chunks that are no longer needed
+        // unload chunks that are no longer needed
         List<Vector2Int> toRemove = new List<Vector2Int>();
         foreach (var kvp in chunks)
         {

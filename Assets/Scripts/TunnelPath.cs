@@ -72,7 +72,7 @@ public class TunnelPath : MonoBehaviour
             direction = ApplyRandomTurnWithClamping(direction);
             head += direction * stepLength;
             mainNodes.Add(head);
-            AddNodeToBucket(head); // ADD to spatial bin
+            AddNodeToBucket(head); // add to spatial bin
 
             // grow branch path if active
             if (branchActive)
@@ -80,7 +80,7 @@ public class TunnelPath : MonoBehaviour
                 branchDir = ApplyBranchSteering(branchDir);
                 Vector2 branchHead = branchNodes[branchNodes.Count - 1] + branchDir * stepLength;
                 branchNodes.Add(branchHead);
-                AddNodeToBucket(branchHead); // ADD branch to spatial bin too
+                AddNodeToBucket(branchHead); // add branch to spatial bin too
 
                 // target always moves ahead along the main path
                 rejoinTargetIndex = mainNodes.Count - 1 + rejoinIndexOffset;
