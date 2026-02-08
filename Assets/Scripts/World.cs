@@ -7,6 +7,7 @@ using UnityEngine.Profiling;
 
 public class World : MonoBehaviour
 {
+    [Range(0, 16)]
     public int renderDistance = 4;
     public const int chunkSize = 16;
     public Material[] materials;
